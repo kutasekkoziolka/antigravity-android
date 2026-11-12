@@ -68,6 +68,8 @@ public final class CoreServerService extends Service {
             try {
                 // Give runtime environment a brief moment to stabilize
                 Thread.sleep(1500);
+                String ldLibPath = getFilesDir().getAbsolutePath() + "/usr/lib:" + getFilesDir().getAbsolutePath() + "/runtime/lib";
+
                 File daemonBin = new File(getFilesDir(), "usr/bin/agy-daemon");
                 if (daemonBin.canExecute()) {
                     Log.i(TAG, "Starting autonomous background daemon...");
@@ -75,10 +77,11 @@ public final class CoreServerService extends Service {
                     pb.directory(getFilesDir());
                     pb.environment().put("PATH", getFilesDir().getAbsolutePath() + "/usr/bin:" + System.getenv("PATH"));
                     pb.environment().put("HOME", getFilesDir().getAbsolutePath());
+                    pb.environment().put("LD_LIBRARY_PATH", ldLibPath);
                     pb.start();
                 }
 
-                // 启动内置轻量大模型适配中转网关 (DeepSeek / OpenAI / Claude)
+                // Start embedded model adapter gateway (fjut / DeepSeek / OpenAI / Claude)
                 File gatewayBin = new File(getFilesDir(), "usr/bin/model_adapter_gateway.py");
                 if (gatewayBin.canExecute() || gatewayBin.isFile()) {
                     Log.i(TAG, "Starting embedded model adapter gateway on port 50999...");
@@ -88,6 +91,7 @@ public final class CoreServerService extends Service {
                     pbGw.directory(getFilesDir());
                     pbGw.environment().put("PATH", getFilesDir().getAbsolutePath() + "/usr/bin:" + System.getenv("PATH"));
                     pbGw.environment().put("HOME", getFilesDir().getAbsolutePath());
+                    pbGw.environment().put("LD_LIBRARY_PATH", ldLibPath);
                     pbGw.redirectErrorStream(true);
                     File gwLog = new File(getFilesDir(), "logs/model_gateway.log");
                     if (gwLog.getParentFile() != null) gwLog.getParentFile().mkdirs();
