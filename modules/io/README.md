@@ -156,6 +156,11 @@
 - `filter_task_events.py`: Отслеживает фазы задач агента (`[task:start]`, `[task:done]`, `tool_call:`), генерируя `agent.task.started`, `agent.task.completed`, `agent.tool.executed`.
 - `filter_error_alerts.py`: Отслеживает фатальные ошибки (`panic:`, `fatal error:`, `sigsegv`, `sigill`), генерируя `system.error`.
 
+### 5.3. Model adapter gateway
+- `interceptors/model_adapter_gateway.py` exposes the Cloud Code endpoints used to list and call configured external models.
+- Its `loadCodeAssist` response uses the protobuf JSON shape expected by the core (`currentTier` and `allowedTiers` contain tier objects with an `id`, such as `standard-tier`).
+- `listExperiments` returns an empty experiment set when the custom gateway is active.
+
 ---
 
 ## 6. Выходные обработчики (`outputs/`)

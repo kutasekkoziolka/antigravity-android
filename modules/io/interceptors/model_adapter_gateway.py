@@ -391,11 +391,15 @@ class ModelGatewayHandler(BaseHTTPRequestHandler):
             self._set_headers(200)
             resp = {
                 "cloudaicompanionProject": "projects/antigravity-custom",
-                "currentTier": "TIER_PRO",
-                "allowedTiers": ["TIER_STANDARD", "TIER_PRO"],
-                "userStatus": "ACTIVE"
+                "currentTier": {"id": "standard-tier"},
+                "allowedTiers": [{"id": "standard-tier"}]
             }
             self.wfile.write(json.dumps(resp).encode("utf-8"))
+            return
+
+        if "/v1internal:listExperiments" in self.path:
+            self._set_headers(200)
+            self.wfile.write(json.dumps({"experimentIds": [], "flags": [], "filteredFlags": []}).encode("utf-8"))
             return
 
         # 2. 拦截 FetchAvailableModels (动态注入外接模型列表)

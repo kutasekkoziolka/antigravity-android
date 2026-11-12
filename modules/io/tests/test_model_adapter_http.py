@@ -6,6 +6,7 @@ modules/io/tests/test_model_adapter_http.py - 真实 HTTP 端口探测与接口�
 import sys
 import os
 import json
+import copy
 import time
 import threading
 import urllib.request
@@ -15,7 +16,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 INTERCEPTORS_DIR = os.path.join(os.path.dirname(SCRIPT_DIR), "interceptors")
 sys.path.insert(0, INTERCEPTORS_DIR)
 
-from model_adapter_gateway import ModelGatewayHandler
+from model_adapter_gateway import ModelGatewayHandler, CONFIG_MGR, DEFAULT_CONFIG
 from http.server import HTTPServer
 
 TEST_PORT = 50998
@@ -24,6 +25,7 @@ class TestModelAdapterHTTP(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        CONFIG_MGR.config = copy.deepcopy(DEFAULT_CONFIG)
         cls.httpd = HTTPServer(("127.0.0.1", TEST_PORT), ModelGatewayHandler)
         cls.thread = threading.Thread(target=cls.httpd.serve_forever, daemon=True)
         cls.thread.start()
@@ -48,8 +50,16 @@ class TestModelAdapterHTTP(unittest.TestCase):
         with urllib.request.urlopen(req, timeout=2) as resp:
             self.assertEqual(resp.status, 200)
             data = json.loads(resp.read().decode("utf-8"))
-            self.assertEqual(data["userStatus"], "ACTIVE")
-            self.assertEqual(data["currentTier"], "TIER_PRO")
+            self.assertEqual(data["currentTier"], {"id": "standard-tier"})
+            self.assertEqual(data["allowedTiers"], [{"id": "standard-tier"}])
+
+    def test_list_experiments_empty(self):
+        url = f"http://127.0.0.1:{TEST_PORT}/v1internal:listExperiments"
+        req = urllib.request.Request(url, data=b"{}", headers={"Content-Type": "application/json"}, method="POST")
+        with urllib.request.urlopen(req, timeout=2) as resp:
+            self.assertEqual(resp.status, 200)
+            data = json.loads(resp.read().decode("utf-8"))
+            self.assertEqual(data, {"experimentIds": [], "flags": [], "filteredFlags": []})
 
     def test_fetch_available_models_injected(self):
         url = f"http://127.0.0.1:{TEST_PORT}/v1internal:fetchAvailableModels"

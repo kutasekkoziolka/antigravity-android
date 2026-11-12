@@ -6,6 +6,7 @@ modules/io/tests/test_model_adapter.py - 大模型适配网关单元测试与请
 import sys
 import os
 import json
+import copy
 import unittest
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -19,6 +20,9 @@ from model_adapter_gateway import (
 )
 
 class TestModelAdapterGateway(unittest.TestCase):
+
+    def setUp(self):
+        CONFIG_MGR.config = copy.deepcopy(DEFAULT_CONFIG)
 
     def test_convert_prompt_and_history(self):
         gemini_req = {
