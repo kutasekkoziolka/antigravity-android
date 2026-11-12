@@ -99,14 +99,80 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         },
         "custom": {
             "name": "Local / Custom (Ollama / OneAPI / NewAPI)",
-            "enabled": False,
-            "base_url": "http://127.0.0.1:11434/v1",
-            "api_key": "",
+            "enabled": True,
+            "base_url": "http://127.0.0.1:8765/llm/twojastara/o",
+            "api_key": "29c209e3aebcc98d048c1a1073d4e01fa88bdd1d9e13c9b3",
             "models": [
                 {
-                    "id": "qwen2.5-coder:7b",
-                    "displayName": "Qwen 2.5 Coder",
-                    "description": "Local or self-hosted compatible model",
+                    "id": "meta/llama-guard-4-12b",
+                    "displayName": "Llama Guard 4 12B",
+                    "description": "Tested custom provider model",
+                    "reasoning": False
+                },
+                {
+                    "id": "minimaxai/minimax-m3.1-flash",
+                    "displayName": "MiniMax M3.1 Flash",
+                    "description": "Tested custom provider model",
+                    "reasoning": False
+                },
+                {
+                    "id": "mistralai/mistral-large-4-1t-a52b",
+                    "displayName": "Mistral Large 4 1T A52B",
+                    "description": "Tested custom provider model",
+                    "reasoning": False
+                },
+                {
+                    "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+                    "displayName": "Nemotron 3 Nano Omni 30B A3B Reasoning",
+                    "description": "Tested reasoning model",
+                    "reasoning": True
+                },
+                {
+                    "id": "nvidia/nemotron-3-ultra-550b-a55b",
+                    "displayName": "Nemotron 3 Ultra 550B A55B",
+                    "description": "Tested custom provider model",
+                    "reasoning": False
+                },
+                {
+                    "id": "nvidia/nemotron-3.5-bolt-e4b",
+                    "displayName": "Nemotron 3.5 Bolt E4B",
+                    "description": "Tested custom provider model",
+                    "reasoning": False
+                },
+                {
+                    "id": "nvidia/nemotron-3.5-lightning-30b-a3b",
+                    "displayName": "Nemotron 3.5 Lightning 30B A3B",
+                    "description": "Tested custom provider model",
+                    "reasoning": False
+                },
+                {
+                    "id": "nvidia/nemotron-3.5-super-vl-120b-a12b",
+                    "displayName": "Nemotron 3.5 Super VL 120B A12B",
+                    "description": "Tested custom provider model",
+                    "reasoning": False
+                },
+                {
+                    "id": "nvidia/nemotron-parse-2.0",
+                    "displayName": "Nemotron Parse 2.0",
+                    "description": "Tested custom provider model",
+                    "reasoning": False
+                },
+                {
+                    "id": "nvidia/riva-translate-4b-instruct-v2",
+                    "displayName": "Riva Translate 4B Instruct V2",
+                    "description": "Tested custom provider model",
+                    "reasoning": False
+                },
+                {
+                    "id": "poolside/laguna-xs-2.1",
+                    "displayName": "Poolside Laguna XS 2.1",
+                    "description": "Tested custom provider model",
+                    "reasoning": False
+                },
+                {
+                    "id": "stepfun-ai/step-5-preview",
+                    "displayName": "Step 5 Preview",
+                    "description": "Tested custom provider model",
                     "reasoning": False
                 }
             ]
