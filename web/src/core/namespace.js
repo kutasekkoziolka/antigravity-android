@@ -25,3 +25,9 @@ function warn(where, err) {
     console.warn('[AGY bridge.core] ' + where + ':', err && err.message ? err.message : err);
   } catch (e) {}
 }
+
+function log(msg) {
+  try {
+    console.log('[AGY bridge.core] ' + msg);
+  } catch (e) {}
+}

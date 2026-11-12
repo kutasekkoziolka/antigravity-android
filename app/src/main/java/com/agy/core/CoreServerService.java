@@ -83,10 +83,10 @@ public final class CoreServerService extends Service {
 
                 // Start embedded model adapter gateway (fjut / DeepSeek / OpenAI / Claude)
                 File gatewayBin = new File(getFilesDir(), "usr/bin/model_adapter_gateway.py");
-                if (gatewayBin.canExecute() || gatewayBin.isFile()) {
+                File pythonBin = new File(getFilesDir(), "usr/bin/python3");
+                if ((gatewayBin.canExecute() || gatewayBin.isFile()) && pythonBin.canExecute()) {
                     Log.i(TAG, "Starting embedded model adapter gateway on port 50999...");
-                    File pythonBin = new File(getFilesDir(), "usr/bin/python3");
-                    String pyExec = pythonBin.canExecute() ? pythonBin.getAbsolutePath() : "python3";
+                    String pyExec = pythonBin.getAbsolutePath();
                     ProcessBuilder pbGw = new ProcessBuilder(pyExec, gatewayBin.getAbsolutePath(), "50999");
                     pbGw.directory(getFilesDir());
                     pbGw.environment().put("PATH", getFilesDir().getAbsolutePath() + "/usr/bin:" + System.getenv("PATH"));
