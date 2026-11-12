@@ -9,14 +9,14 @@
 // host bridge body
   var PREF_KEY = 'AntigravityPulse/preferences.json';
 
-  // 读取持久化偏好设置（默认采用简体中文）
+  // Read stored preferences (default to English)
   function getStoredPreferences() {
     try {
       var raw = localStorage.getItem(PREF_KEY);
       if (raw) return JSON.parse(raw);
     } catch (_) {}
     return {
-      language: localStorage.getItem('ag-pulse-language') || 'zh-CN',
+      language: localStorage.getItem('ag-pulse-language') || 'en',
       group: localStorage.getItem('ag-pulse-group') || null,
       languageGuideDismissed: localStorage.getItem('ag-pulse-guide-dismissed') === 'true',
       usageGuideDismissed: localStorage.getItem('ag-pulse-usage-guide-dismissed') === 'true'
@@ -228,4 +228,4 @@
     }
   };
 
-  console.log('[agDashboard] 1:1 原版 host-bridge 驱动就绪。');// end host bridge
+  console.log('[agDashboard] 1:1 host-bridge driver ready.');// end host bridge

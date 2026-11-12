@@ -52,13 +52,13 @@ DEFAULT_CONFIG: Dict[str, Any] = {
                 {
                     "id": "deepseek-chat",
                     "displayName": "DeepSeek V3",
-                    "description": "DeepSeek 官方通用代码与对话大模型",
+                    "description": "DeepSeek official coding and general chat model",
                     "reasoning": False
                 },
                 {
                     "id": "deepseek-reasoner",
                     "displayName": "DeepSeek R1",
-                    "description": "DeepSeek 官方深度推理与长思维链模型",
+                    "description": "DeepSeek official deep reasoning and chain-of-thought model",
                     "reasoning": True
                 }
             ]
@@ -72,19 +72,19 @@ DEFAULT_CONFIG: Dict[str, Any] = {
                 {
                     "id": "gpt-4o",
                     "displayName": "GPT-4o",
-                    "description": "OpenAI 旗舰全能多模态模型",
+                    "description": "OpenAI flagship multimodal model",
                     "reasoning": False
                 },
                 {
                     "id": "gpt-4o-mini",
                     "displayName": "GPT-4o mini",
-                    "description": "OpenAI 高速轻量小模型",
+                    "description": "OpenAI fast lightweight model",
                     "reasoning": False
                 }
             ]
         },
         "claude": {
-            "name": "Claude (OpenAI 兼容中转/原生)",
+            "name": "Claude (Anthropic / OpenAI Relay)",
             "enabled": False,
             "base_url": "https://api.anthropic.com/v1",
             "api_key": "",
@@ -92,13 +92,13 @@ DEFAULT_CONFIG: Dict[str, Any] = {
                 {
                     "id": "claude-3-5-sonnet-20241022",
                     "displayName": "Claude 3.5 Sonnet",
-                    "description": "Anthropic 编程与逻辑最强模型",
+                    "description": "Anthropic premier coding and reasoning model",
                     "reasoning": False
                 }
             ]
         },
         "custom": {
-            "name": "本地/自定义兼容 (Ollama / OneAPI / NewAPI)",
+            "name": "Local / Custom (Ollama / OneAPI / NewAPI)",
             "enabled": False,
             "base_url": "http://127.0.0.1:11434/v1",
             "api_key": "",
@@ -106,7 +106,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
                 {
                     "id": "qwen2.5-coder:7b",
                     "displayName": "Qwen 2.5 Coder",
-                    "description": "本地/自建服务商兼容模型",
+                    "description": "Local or self-hosted compatible model",
                     "reasoning": False
                 }
             ]
@@ -357,23 +357,23 @@ class ModelGatewayHandler(BaseHTTPRequestHandler):
         self.wfile.write(b'{"error": "unknown endpoint"}')
 
     def _handle_fetch_available_models(self, original_body: bytes):
-        """拉取可用模型列表并注入自定义服务商模型"""
+        """Fetch available model list and inject custom models"""
         models = [
             {
                 "name": "models/gemini-2.5-pro",
                 "displayName": "Gemini 2.5 Pro (Default)",
-                "description": "Google 官方内置 Gemini 2.5 Pro",
+                "description": "Google Official Gemini 2.5 Pro",
                 "supportedGenerationMethods": ["generateContent", "streamGenerateContent"]
             },
             {
                 "name": "models/gemini-2.5-flash",
                 "displayName": "Gemini 2.5 Flash",
-                "description": "Google 官方内置 Gemini 2.5 Flash",
+                "description": "Google Official Gemini 2.5 Flash",
                 "supportedGenerationMethods": ["generateContent", "streamGenerateContent"]
             }
         ]
 
-        # 注入用户在 custom_models.json 中启用的所有模型
+        # Inject user custom models enabled in custom_models.json
         cfg = CONFIG_MGR.config
         for p_key, p_val in cfg.get("providers", {}).items():
             if not p_val.get("enabled", False):
@@ -382,7 +382,7 @@ class ModelGatewayHandler(BaseHTTPRequestHandler):
             for m in p_val.get("models", []):
                 mid = m.get("id", "")
                 mname = m.get("displayName", mid)
-                mdesc = m.get("description", f"由 {p_name} 驱动的外接模型")
+                mdesc = m.get("description", f"External model powered by {p_name}")
                 models.append({
                     "name": f"models/{mid}",
                     "displayName": f"{mname} ({p_name})",
@@ -427,9 +427,9 @@ class ModelGatewayHandler(BaseHTTPRequestHandler):
                 self._send_gemini_error(f"连接 Google 原生后端失败: {e}")
                 return
 
-        # B. 外接模型：调用对应 OpenAI / DeepSeek / Claude 服务商并进行 SSE 流式双向转码
+        # B. External models: Call corresponding provider with bidirectional SSE stream translation
         api_key = model_meta.get("api_key", "").strip()
-        provider_name = model_meta.get("provider_name", "未知服务商")
+        provider_name = model_meta.get("provider_name", "Unknown Provider")
         provider_key = model_meta.get("provider_key", "custom")
         if not api_key and provider_key != "custom":
             self.send_response(200)
@@ -438,10 +438,10 @@ class ModelGatewayHandler(BaseHTTPRequestHandler):
             self.send_header("Connection", "keep-alive")
             self.end_headers()
             tip_msg = (
-                f"【Antigravity 提示】您已选中外接模型，但尚未配置 {provider_name} 的 API 密钥。\n\n"
-                f"👉 快速配置方法（在终端执行）：\n"
-                f"   agy-models set-key {provider_key} <您的API密钥>\n\n"
-                f"配置完成后无需重启，再次发送消息即可直接使用！"
+                f"[Antigravity Notice] External model selected, but API key for {provider_name} is not configured.\n\n"
+                f"👉 To configure (run in terminal):\n"
+                f"   agy-models set-key {provider_key} <your_api_key>\n\n"
+                f"Once configured, send a message to start using it immediately without restarting!"
             )
             self._emit_sse({
                 "candidates": [{
@@ -572,14 +572,14 @@ class ModelGatewayHandler(BaseHTTPRequestHandler):
 
         except urllib.error.HTTPError as he:
             err_body = he.read().decode("utf-8", errors="ignore")
-            print(f"[ModelGateway] 服务商 HTTP 异常: {he.code} -> {err_body}", file=sys.stderr)
-            self._send_gemini_error(f"外接模型服务商返回错误 (HTTP {he.code}): {err_body}")
+            print(f"[ModelGateway] Provider HTTP error: {he.code} -> {err_body}", file=sys.stderr)
+            self._send_gemini_error(f"External model provider error (HTTP {he.code}): {err_body}")
         except Exception as e:
-            print(f"[ModelGateway] 处理大模型请求异常: {e}", file=sys.stderr)
-            self._send_gemini_error(f"外接模型适配网关异常: {e}")
+            print(f"[ModelGateway] Model request exception: {e}", file=sys.stderr)
+            self._send_gemini_error(f"Model adapter gateway exception: {e}")
 
     def _emit_sse(self, data_obj: Dict[str, Any]):
-        """向客户端发送 SSE 数据包"""
+        """Send SSE payload to client"""
         try:
             payload = f"data: {json.dumps(data_obj, ensure_ascii=False)}\n\n"
             self.wfile.write(payload.encode("utf-8"))
@@ -588,7 +588,7 @@ class ModelGatewayHandler(BaseHTTPRequestHandler):
             pass
 
     def _send_gemini_error(self, message: str):
-        """向 Antigravity 内核发送友好的 Gemini 错误包"""
+        """Send standard Gemini error response to Antigravity core"""
         err_chunk = {
             "error": {
                 "code": 500,
@@ -602,14 +602,14 @@ class ModelGatewayHandler(BaseHTTPRequestHandler):
             pass
 
 def run_server(port: int = DEFAULT_PORT):
-    """启动本地轻量模型适配中转服务"""
+    """Start local lightweight model adapter gateway service"""
     server_address = ("127.0.0.1", port)
     httpd = HTTPServer(server_address, ModelGatewayHandler)
-    print(f"[ModelGateway] 正在启动 Antigravity 大模型内置中转网关: http://127.0.0.1:{port}")
+    print(f"[ModelGateway] Starting Antigravity Model Adapter Gateway: http://127.0.0.1:{port}")
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
-        print("\n[ModelGateway] 正在关闭网关...")
+        print("\n[ModelGateway] Shutting down gateway...")
     finally:
         httpd.server_close()
 

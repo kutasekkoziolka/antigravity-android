@@ -185,13 +185,13 @@ function trajectoryMetrics(response) {
 
 function quotaMetrics(response, now = Date.now()) {
   const root = response.response || response;
-  const groups = root.groups?.length ? root.groups : root.buckets?.length ? [{ displayName: '账户额度', buckets: root.buckets }] : [];
+  const groups = root.groups?.length ? root.groups : root.buckets?.length ? [{ displayName: 'Account Quota', buckets: root.buckets }] : [];
   return groups.map((group, index) => ({
     id: group.buckets?.[0]?.bucketId?.replace(/-(5h|weekly)$/, '') || `group-${index}`,
-    name: group.displayName || `额度组 ${index + 1}`, description: group.description || '',
+    name: group.displayName || `Quota Group ${index + 1}`, description: group.description || '',
     windows: Object.fromEntries(['5h', 'weekly'].map(window => {
       const bucket = (group.buckets || []).find(b => b.window === window || b.bucketId?.endsWith(`-${window}`));
-      if (!bucket) return [window, { available: false, reason: '账户未返回此额度窗口' }];
+      if (!bucket) return [window, { available: false, reason: 'Quota window not returned for this account' }];
       const fraction = Number(bucket.remainingFraction);
       const remaining = bucket.remainingFraction !== undefined && Number.isFinite(fraction) && fraction >= 0 && fraction <= 1 ? fraction : null;
       const date = Date.parse(bucket.resetTime);
