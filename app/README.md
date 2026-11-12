@@ -75,6 +75,7 @@ graph TD
   - Запускается как `ForegroundService` с типом `dataSync` и иконкой в трее (`ForegroundNotification`).
   - Удерживает CPU WakeLock (`WakeLockHolder`) с флагом `PARTIAL_WAKE_LOCK`, гарантируя непрерывную работу агента при выключенном экране.
   - Управляет жизненным циклом супервизора ядра, HTTP Gateway и фонового демона `agy-daemon`.
+  - Предоставляет узкий нативный метод `isModelGatewayHealthy()` для HTTPS WebView; интерфейс проверяет HTTP-шлюз моделей через Android, не создавая смешанный HTTP/HTTPS-запрос.
 - **`CoreLauncher`**:
   - Управляет установкой фазы 1 (распаковка и верификация ядра) и запуском нативного процесса.
   - Содержит `killOrphanCoreProcesses()`: сканирует `/proc` и принудительно завершает (`SIGKILL`) любые зависшие orphan-процессы `language_server` от предыдущих сессий перед стартом, исключая ошибку `EADDRINUSE` (`listen: address already in use`) на фиксированных loopback-портах 45157/45158.

@@ -9,6 +9,8 @@ import com.agy.theme.ThemeManager;
 import com.agy.ui.MainActivity;
 
 import java.lang.ref.WeakReference;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -91,6 +93,24 @@ public final class AndroidBridge {
     @JavascriptInterface
     public boolean isDesktopMode() {
         return ui.isDesktopMode();
+    }
+
+    /** Checks the local model adapter from native code so HTTPS WebView pages
+     * do not need to make a mixed-content HTTP request. */
+    @JavascriptInterface
+    public boolean isModelGatewayHealthy() {
+        HttpURLConnection connection = null;
+        try {
+            connection = (HttpURLConnection) new URL("http://127.0.0.1:50999/health").openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(500);
+            connection.setReadTimeout(500);
+            return connection.getResponseCode() == HttpURLConnection.HTTP_OK;
+        } catch (Exception ignored) {
+            return false;
+        } finally {
+            if (connection != null) connection.disconnect();
+        }
     }
 
     @JavascriptInterface

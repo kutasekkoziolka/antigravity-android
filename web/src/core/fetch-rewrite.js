@@ -113,57 +113,55 @@ function installFetchRewrite() {
   // 探测本地轻量大模型适配网关 (model_adapter_gateway.py) 是否存活并就绪
   // 仅在本地网关实际监听并返回健康检查 (HTTP 200) 时，才通过 SetCloudCodeURL 进行挂接，
   // 避免在未运行网关时将 Google Cloud Code 核心请求错误重定向至 50999 导致 Connection Refused。
-  function configureModelGateway() {
+  function configureModelGateway(attempt) {
     try {
       var gatewayPort = 50999;
-      var healthUrl = 'http://127.0.0.1:' + gatewayPort + '/health';
       var targetUrl = 'http://127.0.0.1:' + gatewayPort;
+      var gatewayHealthy = false;
+      try {
+        gatewayHealthy = !!(global.Android
+          && typeof global.Android.isModelGatewayHealthy === 'function'
+          && global.Android.isModelGatewayHealthy());
+      } catch (probeError) {
+        log('native model gateway health probe failed: ' + (probeError && probeError.message ? probeError.message : probeError));
+      }
 
-      var controller = (typeof AbortController === 'function') ? new AbortController() : null;
-      var timer = controller ? setTimeout(function () {
-        try { controller.abort(); } catch (e) {}
-      }, 1200) : null;
-
-      origFetch(healthUrl, {
-        method: 'GET',
-        signal: controller ? controller.signal : undefined
-      }).then(function (res) {
-        if (timer) clearTimeout(timer);
-        if (!res || !res.ok) {
+      // CoreServerService starts the gateway asynchronously. Retry briefly so
+      // the WebView does not race its startup and permanently keep Google URLs.
+      if (!gatewayHealthy) {
+        if (attempt < 20) {
+          setTimeout(function () { configureModelGateway(attempt + 1); }, 250);
+        } else {
           log('model gateway not active, keeping default cloud code endpoint');
-          return;
         }
-        return res.json().then(function (data) {
-          if (!data || !data.ok) {
-            log('model gateway health check negative, skipping redirect');
-            return;
-          }
-          var rpcUrl = appendCsrfQuery(coreBase() + '/exa.language_server_pb.LanguageServerService/SetCloudCodeURL');
-          var reqHeaders = new Headers({
-            'Content-Type': 'application/json',
-            'Connect-Protocol-Version': '1'
-          });
-          ensureCsrf(reqHeaders);
-          return fetchWithStartupRetry(rpcUrl, {
-            method: 'POST',
-            headers: reqHeaders,
-            body: JSON.stringify({ url: targetUrl })
-          }, 5).then(function (rpcRes) {
-            if (rpcRes && rpcRes.ok) {
-              log('model gateway verified and connected to ' + targetUrl);
-            }
-          });
-        });
+        return;
+      }
+
+      var rpcUrl = appendCsrfQuery(coreBase() + '/exa.language_server_pb.LanguageServerService/SetCloudCodeURL');
+      var reqHeaders = new Headers({
+        'Content-Type': 'application/json',
+        'Connect-Protocol-Version': '1'
+      });
+      ensureCsrf(reqHeaders);
+      fetchWithStartupRetry(rpcUrl, {
+        method: 'POST',
+        headers: reqHeaders,
+        body: JSON.stringify({ url: targetUrl })
+      }, 5).then(function (rpcRes) {
+        if (rpcRes && rpcRes.ok) {
+          log('model gateway verified and connected to ' + targetUrl);
+        } else {
+          log('model gateway is healthy, but Cloud Code URL setup failed');
+        }
       }).catch(function (err) {
-        if (timer) clearTimeout(timer);
-        log('model gateway unreachable (standard cloud code preserved): ' + (err && err.message ? err.message : err));
+        log('model gateway is healthy, but Cloud Code URL setup failed: ' + (err && err.message ? err.message : err));
       });
     } catch (e) {
       warn('model gateway init', e);
     }
   }
 
-  setTimeout(configureModelGateway, 1500);
+  setTimeout(function () { configureModelGateway(0); }, 1500);
 }
 
 installFetchRewrite();
